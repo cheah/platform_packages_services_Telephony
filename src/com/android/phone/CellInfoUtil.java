@@ -16,6 +16,7 @@
 
 package com.android.phone;
 
+import android.os.SystemProperties;
 import android.telephony.CellIdentity;
 import android.telephony.CellIdentityCdma;
 import android.telephony.CellIdentityGsm;
@@ -165,6 +166,16 @@ public final class CellInfoUtil {
         } else {
             Log.e(TAG, "Invalid CellInfo type");
             oi = new OperatorInfo("", "", "");
+        }
+
+        // Fix manual network selection with old modem
+        // https://github.com/LineageOS/android_hardware_ril/commit/e3d006fa722c02fc26acdfcaa43a3f3a1378eba9
+        if (SystemProperties.getBoolean("persist.sys.phh.radio.use_old_mnc_format", false)
+              && !TextUtils.isEmpty(oi.getOperatorNumeric())) {
+            oi = new OperatorInfo(
+                    oi.getOperatorAlphaLong(),
+                    oi.getOperatorAlphaShort(),
+                    oi.getOperatorNumeric() + "+");
         }
         return oi;
     }
